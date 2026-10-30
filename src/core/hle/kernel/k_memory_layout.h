@@ -26,6 +26,8 @@ constexpr std::size_t GetMaximumOverheadSize(std::size_t size) {
 
 constexpr std::size_t MainMemorySize = 4_GiB;
 constexpr std::size_t MainMemorySizeMax = 8_GiB;
+// Switch 2 has 12 GiB of DRAM; its applications can set heaps above the Switch 1 maximum.
+constexpr std::size_t Switch2MainMemorySizeMax = 16_GiB;
 
 constexpr std::size_t ReservedEarlyDramSize = 384_KiB;
 constexpr std::size_t DramPhysicalAddress = 0x80000000;

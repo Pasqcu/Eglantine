@@ -17,14 +17,14 @@ Result SetHeapSize(Core::System& system, u64* out_address, u64 size) {
     LOG_TRACE(Kernel_SVC, "called, heap_size={:#x}", size);
 
     // Validate size.
+    auto& process = GetCurrentProcess(system.Kernel());
     R_UNLESS(Common::IsAligned(size, HeapSizeAlignment), ResultInvalidSize);
-    R_UNLESS(size < MainMemorySizeMax, ResultInvalidSize);
+    R_UNLESS(size < (process.IsSwitch2() ? Switch2MainMemorySizeMax : MainMemorySizeMax),
+             ResultInvalidSize);
 
     // Set the heap size.
     KProcessAddress address{};
-    R_TRY(GetCurrentProcess(system.Kernel())
-              .GetPageTable()
-              .SetHeapSize(std::addressof(address), size));
+    R_TRY(process.GetPageTable().SetHeapSize(std::addressof(address), size));
 
     // We succeeded.
     *out_address = GetInteger(address);

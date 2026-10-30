@@ -240,6 +240,11 @@ Result KPageTableBase::InitializeForProcess(Svc::CreateProcessFlag as_type, bool
     if (m_address_space_width == 39) {
         alias_region_size = GetSpaceSize(KAddressSpaceInfo::Type::Alias);
         heap_region_size = GetSpaceSize(KAddressSpaceInfo::Type::Heap);
+        // Switch 2 titles may put all application memory (~9.6 GiB) on the heap
+        // (nninitStartup sizes it as total minus used), more than the 8 GiB Switch 1 region.
+        if (m_switch2_heap_region) {
+            heap_region_size = std::max(heap_region_size, Switch2MainMemorySizeMax);
+        }
         stack_region_size = GetSpaceSize(KAddressSpaceInfo::Type::Stack);
         kernel_map_region_size = GetSpaceSize(KAddressSpaceInfo::Type::MapSmall);
         m_code_region_start = m_address_space_start + aslr_space_start +

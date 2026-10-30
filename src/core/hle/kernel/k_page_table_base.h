@@ -220,6 +220,7 @@ private:
     u32 m_address_space_width{};
     bool m_is_kernel{};
     bool m_enable_aslr{};
+    bool m_switch2_heap_region{};
     bool m_enable_device_address_space_merge{};
     bool m_allowed_exec_device_mapping{};
     KMemoryBlockSlabManager* m_memory_block_slab_manager{};
@@ -681,6 +682,10 @@ public:
     }
     size_t GetHeapRegionSize() const {
         return m_heap_region_end - m_heap_region_start;
+    }
+    // Must be called before InitializeForProcess.
+    void UseSwitch2HeapRegion() {
+        m_switch2_heap_region = true;
     }
     size_t GetAliasRegionSize() const {
         return m_alias_region_end - m_alias_region_start;

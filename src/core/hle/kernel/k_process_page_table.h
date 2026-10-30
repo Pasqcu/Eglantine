@@ -37,6 +37,10 @@ public:
         m_page_table.AllowDeviceMappingOfExecPages();
     }
 
+    void UseSwitch2HeapRegion() {
+        m_page_table.UseSwitch2HeapRegion();
+    }
+
     [[nodiscard]] Core::Memory::Memory& GetMemory() noexcept { return m_page_table.GetMemory(); }
     [[nodiscard]] Core::Memory::Memory const& GetMemory() const noexcept { return m_page_table.GetMemory(); }
     [[nodiscard]] Common::PageTable& GetImpl() noexcept { return m_page_table.GetImpl(); }

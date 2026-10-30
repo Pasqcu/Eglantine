@@ -112,13 +112,24 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
 
 namespace {
 
-// Switch 2 titles boot as a loose ExeFS, with main.npdm next to main.
-bool IsSwitch2Program(const FileSys::VirtualFile& file) {
+// Switch 2 titles boot as a loose ExeFS, with main.npdm next to main, or from an NSP or XCI
+// repacked from one. Without a main.npdm, the program ID tells: Switch 2 programs are in the
+// 04 range (their ACID allows 0x0400000000010000 to 0x04FFFFFFFFFFFFFF).
+bool IsSwitch2Program(System& system, const FileSys::VirtualFile& file) {
     const auto dir = file != nullptr ? file->GetContainingDirectory() : nullptr;
     const auto npdm = dir != nullptr ? dir->GetFile("main.npdm") : nullptr;
-    FileSys::ProgramMetadata metadata;
-    return npdm != nullptr && metadata.Load(npdm) == Loader::ResultStatus::Success &&
-           metadata.IsSwitch2();
+    if (npdm != nullptr) {
+        FileSys::ProgramMetadata metadata;
+        return metadata.Load(npdm) == Loader::ResultStatus::Success && metadata.IsSwitch2();
+    }
+    if (file == nullptr) {
+        return false;
+    }
+    const auto loader = Loader::GetLoader(system, file);
+    u64 program_id{};
+    return loader != nullptr &&
+           loader->ReadProgramId(program_id) == Loader::ResultStatus::Success &&
+           (program_id >> 56) == 0x04;
 }
 
 } // namespace
@@ -317,7 +328,7 @@ struct System::Impl {
         // as a per-game value, so RestoreGlobalState brings back the configured layout afterwards.
         if (virtual_filesystem != nullptr &&
             Settings::values.memory_layout_mode.GetValue() != Settings::MemoryLayout::Memory_12Gb &&
-            IsSwitch2Program(GetGameFileFromPath(virtual_filesystem, filepath))) {
+            IsSwitch2Program(system, GetGameFileFromPath(virtual_filesystem, filepath))) {
             LOG_INFO(Core, "Switch 2 program: using the 12 GiB memory layout");
             Settings::values.memory_layout_mode.SetGlobal(false);
             Settings::values.memory_layout_mode.SetValue(Settings::MemoryLayout::Memory_12Gb);
